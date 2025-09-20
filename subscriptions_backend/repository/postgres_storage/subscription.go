@@ -1,4 +1,4 @@
-package postgresstorage
+package postgres_storage
 
 import (
 	"database/sql"
@@ -24,5 +24,11 @@ func NewSubscriptionDB(connStr string) (*SubcriptionDB, error) {
 }
 
 func (ps *SubcriptionDB) CreateSubscription(subs *domain.Subscription) error {
-
+	query := `INSERT INTO subscriptions (id, service_name, price, user_id, start_date, end_date)
+			  VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := ps.db.Exec(query, subs.SubscriptionID, subs.ServiceName, subs.Price, subs.UserID, subs.StartDate, subs.EndDate)
+	if err != nil {
+		return err
+	}
+	return nil
 }

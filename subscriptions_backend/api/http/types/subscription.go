@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"subscriptions_backend/domain"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,26 +27,26 @@ type PostCreateSubscriptionDTO struct {
 	EndDate     *time.Time
 }
 
-func (r PostCreateSubscriptionRequest) ToDTO() (PostCreateSubscriptionDTO, error) {
+func (r PostCreateSubscriptionRequest) ToDomain() (*domain.Subscription, error) {
 	userID, err := uuid.Parse(r.UserID)
 	if err != nil {
-		return PostCreateSubscriptionDTO{}, err
+		return nil, err
 	}
 
 	start, err := parseMonthYear(r.StartDate)
 	if err != nil {
-		return PostCreateSubscriptionDTO{}, err
+		return nil, err
 	}
 
 	var end *time.Time
 	if r.EndDate != nil {
 		parsedEnd, err := parseMonthYear(*r.EndDate)
 		if err != nil {
-			return PostCreateSubscriptionDTO{}, err
+			return nil, err
 		}
 		end = &parsedEnd
 	}
-	return PostCreateSubscriptionDTO{
+	return &domain.Subscription{
 		ServiceName: r.ServiceName,
 		Price:       r.Price,
 		UserID:      userID,
@@ -68,6 +69,10 @@ func CreatePostSubscriptionRequest(r *http.Request) (*PostCreateSubscriptionRequ
 		return nil, fmt.Errorf("error while decoding json: %v", err)
 	}
 	return &req, nil
+}
+
+type PostCreateSubscriptionResponse struct {
+	SubscriptionID uuid.UUID `json:"subscription_id"`
 }
 
 func parseMonthYear(s string) (time.Time, error) {

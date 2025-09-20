@@ -1,0 +1,53 @@
+basePath: /
+definitions:
+  types.PostCreateSubscriptionRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server.
+  title: My API
+  version: "1.0"
+paths:
+  /subscriptions:
+    post:
+      consumes:
+      - application/json
+      description: Create a new subscription and issue their subscriptionID
+      parameters:
+      - description: login and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostCreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "409":
+          description: User with this username already exist
+          schema:
+            type: string
+      summary: Create a new subscription
+      tags:
+      - user
+swagger: "2.0"
