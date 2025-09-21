@@ -1,6 +1,7 @@
 package http
 
 import (
+	"log/slog"
 	"net/http"
 	"subscriptions_backend/api/http/types"
 	"subscriptions_backend/usecases"
@@ -29,22 +30,29 @@ func NewSubscriptionHandler(service usecases.Subcription) *Subscription {
 // @Failure 409 {string} string "User with this username already exist"
 // @Router /subscriptions [post]
 func (s *Subscription) postCreateSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
+	slog.Info("incoming request", "layer", "http_handler", "method", r.Method, "path", r.URL.Path)
+
 	req, err := types.CreatePostSubscriptionRequest(r)
 	if err != nil {
+		slog.Warn("failed to parse request", "error", err)
 		types.ProcessError(w, err, nil)
 		return
 	}
 	subscription, err := req.ToDomain()
 	if err != nil {
+		slog.Warn("failed to convert request to domain", "error", err)
 		types.ProcessError(w, err, nil)
 		return
 	}
 
 	subID, err := s.service.CreateSubscription(subscription)
 	if err != nil {
+		slog.Error("failed to create subscription in service", "error", err)
 		types.ProcessError(w, err, nil)
 		return
 	}
+
+	slog.Info("subscription created", "subscription_id", subID)
 	types.ProcessError(w, err, &types.PostCreateSubscriptionResponse{SubscriptionID: subID})
 }
 

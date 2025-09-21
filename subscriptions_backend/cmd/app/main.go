@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"pkg/config"
 	pkgHttp "pkg/http"
@@ -25,19 +25,31 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+	//ctx := context.Background()
+
 	appFlags := appConfig.ParseFlags()
 	var cfg appConfig.AppConfig
 	config.MustLoad(appFlags.ConfigPath, &cfg)
 
+	logger.Info("config loaded", "config_path", appFlags.ConfigPath)
+
 	connStr := os.Getenv("DB_CONN_STR")
 	if connStr == "" {
-		log.Fatal("DB_CONN_STR environment variable is required")
+		logger.Error("DB_CONN_STR environment variable is required")
+		os.Exit(1)
 	}
 
 	subscriptionRepo, err := postgres_storage.NewSubscriptionDB(connStr)
 	if err != nil {
-		log.Fatalf("no connection with postgres: %v", err)
+		logger.Error("no connection with postgres", "error", err)
+		os.Exit(1)
 	}
+	logger.Info("connected to postgres")
+
 	subscriptionService := service.NewSubscription(subscriptionRepo)
 	subscriptionHandlers := http.NewSubscriptionHandler(subscriptionService)
 
@@ -45,8 +57,9 @@ func main() {
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 	subscriptionHandlers.WithSubscriptionHandlers(r)
 
-	log.Printf("Starting server on %s", cfg.Address)
+	logger.Info("starting HTTP server", "address", cfg.Address)
 	if err := pkgHttp.CreateAndRunServer(r, cfg.Address); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		logger.Error("failed to start server", "error", err)
+		os.Exit(1)
 	}
 }
