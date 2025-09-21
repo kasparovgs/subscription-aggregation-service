@@ -8,4 +8,5 @@ import (
 
 type Subcription interface {
 	CreateSubscription(subs *domain.Subscription) (uuid.UUID, error)
+	GetSubscriptionByID(subscriptionID uuid.UUID) (*domain.Subscription, error)
 }

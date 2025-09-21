@@ -37,3 +37,22 @@ func (s *Subcription) CreateSubscription(subs *domain.Subscription) (uuid.UUID, 
 	)
 	return subscriptionID, nil
 }
+
+func (s *Subcription) GetSubscriptionByID(subscriptionID uuid.UUID) (*domain.Subscription, error) {
+	subs, err := s.subscriptionRepo.GetSubscriptionByID(subscriptionID)
+	if err != nil {
+		slog.Error("failed to get subscription from repository",
+			"error", err,
+			"subscription_id", subscriptionID,
+		)
+		return nil, err
+	}
+
+	slog.Info("subscription received from repo",
+		"layer", "service",
+		"subscription_id", subscriptionID,
+		"user_id", subs.UserID,
+		"service_name", subs.ServiceName,
+	)
+	return subs, nil
+}

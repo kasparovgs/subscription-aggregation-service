@@ -4,6 +4,7 @@ import "fmt"
 
 var (
 	CodeNotFound     = 404
+	CodeBadRequest   = 400
 	CodeUnauthorized = 401
 	CodeAlreadyExist = 409
 	CodeForbidden    = 403
@@ -37,5 +38,8 @@ var (
 	}
 	ErrForbidden = func(msg string) *MyErr {
 		return NewError(CodeForbidden, "Forbidden: "+msg)
+	}
+	ErrBadRequest = func(msg string) *MyErr {
+		return NewError(CodeBadRequest, "Bad request: "+msg)
 	}
 )

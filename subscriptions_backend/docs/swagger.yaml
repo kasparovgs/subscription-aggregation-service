@@ -43,11 +43,37 @@ paths:
           description: Bad request
           schema:
             type: string
-        "409":
-          description: User with this username already exist
-          schema:
-            type: string
       summary: Create a new subscription
       tags:
-      - user
+      - subscription
+  /subscriptions/{subscription_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a subscription by their subscriptionID
+      parameters:
+      - description: UUID of the subscription
+        format: uuid
+        in: path
+        name: subscription_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Subscription not found
+          schema:
+            type: string
+      summary: Get a subscription
+      tags:
+      - subscription
 swagger: "2.0"

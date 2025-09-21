@@ -21,7 +21,7 @@ func NewSubscriptionHandler(service usecases.Subcription) *Subscription {
 
 // @Summary Create a new subscription
 // @Description Create a new subscription and issue their subscriptionID
-// @Tags user
+// @Tags subscription
 // @Accept  json
 // @Produce json
 // @Param request body types.PostCreateSubscriptionRequest true "login and password"
@@ -29,7 +29,7 @@ func NewSubscriptionHandler(service usecases.Subcription) *Subscription {
 // @Failure 400 {string} string "Bad request"
 // @Router /subscriptions [post]
 func (s *Subscription) postCreateSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
-	req, err := types.CreatePostSubscriptionRequest(r)
+	req, err := types.CreatePostSubscriptionHandlerRequest(r)
 	if err != nil {
 		slog.Warn("failed to parse request", "error", err)
 		types.ProcessError(w, err, nil)
@@ -53,11 +53,40 @@ func (s *Subscription) postCreateSubscriptionHandler(w http.ResponseWriter, r *h
 	types.ProcessError(w, err, &types.PostCreateSubscriptionResponse{SubscriptionID: subID})
 }
 
-func (s *Subscription) getSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
-
+// @Summary Get a subscription
+// @Description Get a subscription by their subscriptionID
+// @Tags subscription
+// @Accept  json
+// @Produce json
+// @Param subscription_id path string true "UUID of the subscription" format(uuid)
+// @Success 200 {string} types.GetSubscriptionByIDResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 404 {string} string "Subscription not found"
+// @Router /subscriptions/{subscription_id} [get]
+func (s *Subscription) getSubscriptionByIDHandler(w http.ResponseWriter, r *http.Request) {
+	subs, err := types.GetSubscriptionByIDHandlerRequest(r)
+	if err != nil {
+		slog.Warn("failed to parse request", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	subs, err = s.service.GetSubscriptionByID(subs.SubscriptionID)
+	if err != nil {
+		slog.Error("failed to get subscription by subscriptionID", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	slog.Info("subscription received", "subscription_id", subs.SubscriptionID)
+	types.ProcessError(w, err, &types.GetSubscriptionByIDResponse{SubscriptionID: subs.SubscriptionID,
+		ServiceName: subs.ServiceName,
+		Price:       subs.Price,
+		UserID:      subs.UserID,
+		StartDate:   subs.StartDate,
+		EndDate:     subs.EndDate,
+	})
 }
 
 func (s *Subscription) WithSubscriptionHandlers(r chi.Router) {
 	r.Post("/subscriptions", s.postCreateSubscriptionHandler)
-	r.Get("/subscriptions/{subscription_id}", s.getSubscriptionHandler)
+	r.Get("/subscriptions/{subscription_id}", s.getSubscriptionByIDHandler)
 }
