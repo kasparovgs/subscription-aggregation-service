@@ -28,7 +28,7 @@ type PostCreateSubscriptionDTO struct {
 	EndDate     *time.Time
 }
 
-func (r PostCreateSubscriptionRequest) ToDomain() (*domain.Subscription, error) {
+func (r *PostCreateSubscriptionRequest) ToDomain() (*domain.Subscription, error) {
 	userID, err := uuid.Parse(r.UserID)
 	if err != nil {
 		return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding uuid: %v", err))
@@ -87,6 +87,71 @@ func GetSubscriptionByIDHandlerRequest(r *http.Request) (*domain.Subscription, e
 }
 
 type GetSubscriptionByIDResponse struct {
+	SubscriptionID uuid.UUID  `json:"subscription_id"`
+	ServiceName    string     `json:"service_name"`
+	Price          int        `json:"price"`
+	UserID         uuid.UUID  `json:"user_id"`
+	StartDate      time.Time  `json:"start_date"`
+	EndDate        *time.Time `json:"end_date"`
+}
+
+type PatchSubscriptionByIDRequest struct {
+	SubscriptionID uuid.UUID `json:"-"`
+	ServiceName    *string   `json:"service_name,omitempty"`
+	Price          *int      `json:"price"`
+	EndDate        *string   `json:"end_date,omitempty"`
+}
+
+func PatchSubscriptionByIDHandlerRequest(r *http.Request) (*PatchSubscriptionByIDRequest, error) {
+	subIDStr := chi.URLParam(r, "subscription_id")
+	subID, err := uuid.Parse(subIDStr)
+	if err != nil {
+		return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding uuid: %v", err))
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding json: %v", err))
+	}
+
+	defer r.Body.Close()
+
+	var req PatchSubscriptionByIDRequest
+
+	err = json.Unmarshal(body, &req)
+	if err != nil {
+		return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding json: %v", err))
+	}
+	if req.ServiceName == nil && req.Price == nil && req.EndDate == nil {
+		return nil, domain.ErrBadRequest("no fields to update")
+	}
+	return &PatchSubscriptionByIDRequest{SubscriptionID: subID, ServiceName: req.ServiceName, Price: req.Price, EndDate: req.EndDate}, nil
+}
+
+func (r *PatchSubscriptionByIDRequest) ToDomain() (*domain.Subscription, error) {
+	var end *time.Time
+	if r.EndDate != nil {
+		parsedEnd, err := parseMonthYear(*r.EndDate)
+		if err != nil {
+			return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding endDate: %v", err))
+		}
+		end = &parsedEnd
+	}
+
+	subs := &domain.Subscription{SubscriptionID: r.SubscriptionID}
+	if r.ServiceName != nil {
+		subs.ServiceName = *r.ServiceName
+	}
+	if r.Price != nil {
+		subs.Price = *r.Price
+	}
+	if end != nil {
+		subs.EndDate = end
+	}
+	return subs, nil
+}
+
+type PatchSubscriptionByIDResponse struct {
 	SubscriptionID uuid.UUID  `json:"subscription_id"`
 	ServiceName    string     `json:"service_name"`
 	Price          int        `json:"price"`

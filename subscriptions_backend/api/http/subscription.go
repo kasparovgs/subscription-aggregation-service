@@ -86,7 +86,44 @@ func (s *Subscription) getSubscriptionByIDHandler(w http.ResponseWriter, r *http
 	})
 }
 
+// @Summary Patch a subscription
+// @Description Patch a subscription by their subscriptionID
+// @Tags subscription
+// @Accept  json
+// @Produce json
+// @Param subscription_id path string true "UUID of the subscription" format(uuid)
+// @Param request body types.PatchSubscriptionByIDRequest true "Fields to update"
+// @Success 200 {string} types.GetSubscriptionByIDResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 404 {string} string "Subscription not found"
+// @Router /subscriptions/{subscription_id} [patch]
+func (s *Subscription) patchSubscriptionByIDHandler(w http.ResponseWriter, r *http.Request) {
+	req, err := types.PatchSubscriptionByIDHandlerRequest(r)
+	if err != nil {
+		slog.Warn("failed to parse request", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	subscription, err := req.ToDomain()
+	if err != nil {
+		slog.Warn("failed to convert request to domain", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	subs, err := s.service.PatchSubscriptionByID(subscription)
+	if err != nil {
+		slog.Error("failed to patch subscription by subscriptionID", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	slog.Info("subscription patched", "subscription_id", subscription.SubscriptionID)
+	types.ProcessError(w, err, &types.PatchSubscriptionByIDResponse{SubscriptionID: subs.SubscriptionID,
+		ServiceName: subs.ServiceName, Price: subs.Price, UserID: subs.UserID, StartDate: subs.StartDate,
+		EndDate: subs.EndDate})
+}
+
 func (s *Subscription) WithSubscriptionHandlers(r chi.Router) {
 	r.Post("/subscriptions", s.postCreateSubscriptionHandler)
 	r.Get("/subscriptions/{subscription_id}", s.getSubscriptionByIDHandler)
+	r.Patch("/subscriptions/{subscription_id}", s.patchSubscriptionByIDHandler)
 }

@@ -53,3 +53,24 @@ func (ps *SubcriptionDB) GetSubscriptionByID(subscriptionID uuid.UUID) (*domain.
 
 	return &subs, nil
 }
+
+func (ps *SubcriptionDB) PatchSubscriptionByID(subs *domain.Subscription) error {
+	if !ps.IsExist(subs.SubscriptionID) {
+		return domain.ErrNotFound("subscription not found")
+	}
+	query := `UPDATE subscriptions SET service_name = COALESCE($1, service_name),
+         			 price = COALESCE($2, price), end_date = COALESCE($3, end_date)
+     				 WHERE id = $4`
+	_, err := ps.db.Exec(query, subs.ServiceName, subs.Price, subs.EndDate, subs.SubscriptionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ps *SubcriptionDB) IsExist(subscriptionID uuid.UUID) bool {
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM subscriptions WHERE id = $1)`
+	_ = ps.db.QueryRow(query, subscriptionID).Scan(&exists)
+	return exists
+}
