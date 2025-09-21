@@ -27,11 +27,8 @@ func NewSubscriptionHandler(service usecases.Subcription) *Subscription {
 // @Param request body types.PostCreateSubscriptionRequest true "login and password"
 // @Success 201 {string} types.PostCreateSubscriptionResponse
 // @Failure 400 {string} string "Bad request"
-// @Failure 409 {string} string "User with this username already exist"
 // @Router /subscriptions [post]
 func (s *Subscription) postCreateSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
-	slog.Info("incoming request", "layer", "http_handler", "method", r.Method, "path", r.URL.Path)
-
 	req, err := types.CreatePostSubscriptionRequest(r)
 	if err != nil {
 		slog.Warn("failed to parse request", "error", err)
@@ -56,6 +53,11 @@ func (s *Subscription) postCreateSubscriptionHandler(w http.ResponseWriter, r *h
 	types.ProcessError(w, err, &types.PostCreateSubscriptionResponse{SubscriptionID: subID})
 }
 
+func (s *Subscription) getSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func (s *Subscription) WithSubscriptionHandlers(r chi.Router) {
 	r.Post("/subscriptions", s.postCreateSubscriptionHandler)
+	r.Get("/subscriptions/{subscription_id}", s.getSubscriptionHandler)
 }

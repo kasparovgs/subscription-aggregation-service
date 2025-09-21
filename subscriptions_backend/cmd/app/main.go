@@ -54,6 +54,7 @@ func main() {
 	subscriptionHandlers := http.NewSubscriptionHandler(subscriptionService)
 
 	r := chi.NewRouter()
+	r.Use(pkgHttp.LoggingMiddleware)
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 	subscriptionHandlers.WithSubscriptionHandlers(r)
 
