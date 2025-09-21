@@ -10,8 +10,12 @@ import (
 	"subscriptions_backend/repository/postgres_storage"
 	"subscriptions_backend/usecases/service"
 
-	"github.com/go-chi/chi/v5"
+	_ "subscriptions_backend/docs"
+
 	httpSwagger "github.com/swaggo/http-swagger"
+
+	"github.com/go-chi/chi/v5"
+	_ "github.com/lib/pq"
 )
 
 // @title My API

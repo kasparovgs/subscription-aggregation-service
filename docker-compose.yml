@@ -12,6 +12,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 5
+
   migrate:
     image: migrate/migrate:4
     command: [
@@ -20,9 +21,21 @@ services:
       "up"
     ]
     volumes:
-      - ./user_backend/migrations:/migrations
+      - ./subscriptions_backend/migrations:/migrations
     depends_on:
       db:
         condition: service_healthy
     restart: "no"
     profiles: ["migrate"]
+
+  app:
+    build:
+      context: .
+      dockerfile: subscriptions_backend/Dockerfile
+    environment:
+      DB_CONN_STR: "postgres://user:password@db:5432/mydatabase?sslmode=disable"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
