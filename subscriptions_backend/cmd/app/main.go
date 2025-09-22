@@ -20,7 +20,7 @@ import (
 
 // @title My API
 // @version 1.0
-// @description This is a sample server.
+// @description REST-service for aggregating data about users online subscriptions.
 
 // @host localhost:8080
 // @BasePath /
@@ -29,7 +29,6 @@ func main() {
 		Level: slog.LevelInfo,
 	}))
 	slog.SetDefault(logger)
-	//ctx := context.Background()
 
 	appFlags := appConfig.ParseFlags()
 	var cfg appConfig.AppConfig

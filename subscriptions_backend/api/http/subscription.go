@@ -25,7 +25,7 @@ func NewSubscriptionHandler(service usecases.Subcription) *Subscription {
 // @Accept  json
 // @Produce json
 // @Param request body types.PostCreateSubscriptionRequest true "login and password"
-// @Success 201 {string} types.PostCreateSubscriptionResponse
+// @Success 201 {object} types.PostCreateSubscriptionResponse
 // @Failure 400 {string} string "Bad request"
 // @Router /subscriptions [post]
 func (s *Subscription) postCreateSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +59,7 @@ func (s *Subscription) postCreateSubscriptionHandler(w http.ResponseWriter, r *h
 // @Accept  json
 // @Produce json
 // @Param subscription_id path string true "UUID of the subscription" format(uuid)
-// @Success 200 {string} types.GetSubscriptionByIDResponse
+// @Success 200 {object} types.GetSubscriptionByIDResponse
 // @Failure 400 {string} string "Bad request"
 // @Failure 404 {string} string "Subscription not found"
 // @Router /subscriptions/{subscription_id} [get]
@@ -93,7 +93,7 @@ func (s *Subscription) getSubscriptionByIDHandler(w http.ResponseWriter, r *http
 // @Produce json
 // @Param subscription_id path string true "UUID of the subscription" format(uuid)
 // @Param request body types.PatchSubscriptionByIDRequest true "Fields to update"
-// @Success 200 {string} types.GetSubscriptionByIDResponse
+// @Success 200 {object} types.GetSubscriptionByIDResponse
 // @Failure 400 {string} string "Bad request"
 // @Failure 404 {string} string "Subscription not found"
 // @Router /subscriptions/{subscription_id} [patch]
@@ -122,8 +122,38 @@ func (s *Subscription) patchSubscriptionByIDHandler(w http.ResponseWriter, r *ht
 		EndDate: subs.EndDate})
 }
 
+// @Summary Delete a subscription
+// @Description Delete a subscription by their subscriptionID
+// @Tags subscription
+// @Accept  json
+// @Produce json
+// @Param subscription_id path string true "UUID of the subscription" format(uuid)
+// @Success 200 {object} types.GetSubscriptionByIDResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 404 {string} string "Subscription not found"
+// @Router /subscriptions/{subscription_id} [delete]
+func (s *Subscription) deleteSubscriptionByIDHandler(w http.ResponseWriter, r *http.Request) {
+	subs, err := types.GetSubscriptionByIDHandlerRequest(r)
+	if err != nil {
+		slog.Warn("failed to parse request", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	subs, err = s.service.DeleteSubscriptionByID(subs)
+	if err != nil {
+		slog.Error("failed to delete subscription by subscriptionID", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	slog.Info("subscription deleted", "subscription_id", subs.SubscriptionID)
+	types.ProcessError(w, err, &types.DeleteSubscriptionByIDResponse{SubscriptionID: subs.SubscriptionID,
+		ServiceName: subs.ServiceName, Price: subs.Price, UserID: subs.UserID, StartDate: subs.StartDate,
+		EndDate: subs.EndDate})
+}
+
 func (s *Subscription) WithSubscriptionHandlers(r chi.Router) {
 	r.Post("/subscriptions", s.postCreateSubscriptionHandler)
 	r.Get("/subscriptions/{subscription_id}", s.getSubscriptionByIDHandler)
 	r.Patch("/subscriptions/{subscription_id}", s.patchSubscriptionByIDHandler)
+	r.Delete("/subscriptions/{subscription_id}", s.deleteSubscriptionByIDHandler)
 }

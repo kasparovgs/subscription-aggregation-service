@@ -43,7 +43,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.PostCreateSubscriptionResponse"
                         }
                     },
                     "400": {
@@ -82,7 +82,50 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "$ref": "#/definitions/types.GetSubscriptionByIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
                             "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Subscription not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a subscription by their subscriptionID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Delete a subscription",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "UUID of the subscription",
+                        "name": "subscription_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetSubscriptionByIDResponse"
                         }
                     },
                     "400": {
@@ -134,7 +177,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.GetSubscriptionByIDResponse"
                         }
                     },
                     "400": {
@@ -154,6 +197,29 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "types.GetSubscriptionByIDResponse": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "subscription_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "types.PatchSubscriptionByIDRequest": {
             "type": "object",
             "properties": {
@@ -187,6 +253,14 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "types.PostCreateSubscriptionResponse": {
+            "type": "object",
+            "properties": {
+                "subscription_id": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
@@ -198,7 +272,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "My API",
-	Description:      "This is a sample server.",
+	Description:      "REST-service for aggregating data about users online subscriptions.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

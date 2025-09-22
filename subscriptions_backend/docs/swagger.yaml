@@ -1,5 +1,20 @@
 basePath: /
 definitions:
+  types.GetSubscriptionByIDResponse:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      subscription_id:
+        type: string
+      user_id:
+        type: string
+    type: object
   types.PatchSubscriptionByIDRequest:
     properties:
       end_date:
@@ -22,10 +37,15 @@ definitions:
       user_id:
         type: string
     type: object
+  types.PostCreateSubscriptionResponse:
+    properties:
+      subscription_id:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
-  description: This is a sample server.
+  description: REST-service for aggregating data about users online subscriptions.
   title: My API
   version: "1.0"
 paths:
@@ -47,7 +67,7 @@ paths:
         "201":
           description: Created
           schema:
-            type: string
+            $ref: '#/definitions/types.PostCreateSubscriptionResponse'
         "400":
           description: Bad request
           schema:
@@ -56,6 +76,35 @@ paths:
       tags:
       - subscription
   /subscriptions/{subscription_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a subscription by their subscriptionID
+      parameters:
+      - description: UUID of the subscription
+        format: uuid
+        in: path
+        name: subscription_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetSubscriptionByIDResponse'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Subscription not found
+          schema:
+            type: string
+      summary: Delete a subscription
+      tags:
+      - subscription
     get:
       consumes:
       - application/json
@@ -73,7 +122,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/types.GetSubscriptionByIDResponse'
         "400":
           description: Bad request
           schema:
@@ -108,7 +157,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/types.GetSubscriptionByIDResponse'
         "400":
           description: Bad request
           schema:

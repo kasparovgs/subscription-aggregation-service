@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// ***** [POST] CreateSubscription *****
 type PostCreateSubscriptionRequest struct {
 	ServiceName string  `json:"service_name"`
 	Price       int     `json:"price"`
@@ -76,6 +77,10 @@ type PostCreateSubscriptionResponse struct {
 	SubscriptionID uuid.UUID `json:"subscription_id"`
 }
 
+// *************************************
+
+// ***** [GET] GetSubscriptionByID *****
+
 func GetSubscriptionByIDHandlerRequest(r *http.Request) (*domain.Subscription, error) {
 	subIDStr := chi.URLParam(r, "subscription_id")
 	subID, err := uuid.Parse(subIDStr)
@@ -94,6 +99,10 @@ type GetSubscriptionByIDResponse struct {
 	StartDate      time.Time  `json:"start_date"`
 	EndDate        *time.Time `json:"end_date"`
 }
+
+// *************************************
+
+// ***** [PATCH] PatchSubscriptionByID *****
 
 type PatchSubscriptionByIDRequest struct {
 	SubscriptionID uuid.UUID `json:"-"`
@@ -159,6 +168,30 @@ type PatchSubscriptionByIDResponse struct {
 	StartDate      time.Time  `json:"start_date"`
 	EndDate        *time.Time `json:"end_date"`
 }
+
+// *****************************************
+
+// ***** [DELETE] DeleteSubscriptionByID *****
+func DeleteSubscriptionByIDHandlerRequest(r *http.Request) (*domain.Subscription, error) {
+	subIDStr := chi.URLParam(r, "subscription_id")
+	subID, err := uuid.Parse(subIDStr)
+	if err != nil {
+		return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding uuid: %v", err))
+	}
+	subs := domain.Subscription{SubscriptionID: subID}
+	return &subs, nil
+}
+
+type DeleteSubscriptionByIDResponse struct {
+	SubscriptionID uuid.UUID  `json:"subscription_id"`
+	ServiceName    string     `json:"service_name"`
+	Price          int        `json:"price"`
+	UserID         uuid.UUID  `json:"user_id"`
+	StartDate      time.Time  `json:"start_date"`
+	EndDate        *time.Time `json:"end_date"`
+}
+
+// *******************************************
 
 func parseMonthYear(s string) (time.Time, error) {
 	layout := "01-2006"

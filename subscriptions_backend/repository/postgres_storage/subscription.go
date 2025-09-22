@@ -68,6 +68,22 @@ func (ps *SubcriptionDB) PatchSubscriptionByID(subs *domain.Subscription) error 
 	return nil
 }
 
+func (ps *SubcriptionDB) DeleteSubscriptionByID(subs *domain.Subscription) error {
+	if !ps.IsExist(subs.SubscriptionID) {
+		return domain.ErrNotFound("subscription not found")
+	}
+	query := `DELETE FROM subscriptions WHERE id = $1
+			  RETURNING service_name, price, user_id, start_date, end_date`
+	err := ps.db.QueryRow(query, subs.SubscriptionID).Scan(&subs.ServiceName, &subs.Price, &subs.UserID, &subs.StartDate, &subs.EndDate)
+	if err == sql.ErrNoRows {
+		return domain.ErrNotFound("subscription not found")
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (ps *SubcriptionDB) IsExist(subscriptionID uuid.UUID) bool {
 	var exists bool
 	query := `SELECT EXISTS(SELECT 1 FROM subscriptions WHERE id = $1)`

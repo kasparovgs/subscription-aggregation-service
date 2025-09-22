@@ -75,3 +75,20 @@ func (s *Subcription) PatchSubscriptionByID(subs *domain.Subscription) (*domain.
 		"service_name", subs.ServiceName)
 	return subs, nil
 }
+
+func (s *Subcription) DeleteSubscriptionByID(subs *domain.Subscription) (*domain.Subscription, error) {
+	err := s.subscriptionRepo.DeleteSubscriptionByID(subs)
+	if err != nil {
+		slog.Error("failed to delete subscription from repository",
+			"error", err,
+			"subscription_id", subs.SubscriptionID,
+		)
+		return nil, err
+	}
+	slog.Info("subscription deleted from repo",
+		"layer", "service",
+		"subscription_id", subs.SubscriptionID,
+		"user_id", subs.UserID,
+		"service_name", subs.ServiceName)
+	return subs, nil
+}
