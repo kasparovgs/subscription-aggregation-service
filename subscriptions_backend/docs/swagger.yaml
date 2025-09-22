@@ -50,6 +50,43 @@ info:
   version: "1.0"
 paths:
   /subscriptions:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of subscriptions with the ability to filter
+      parameters:
+      - description: userUUID
+        in: query
+        name: user_id
+        type: string
+      - description: Service name
+        in: query
+        name: service_name
+        type: string
+      - description: Start date (MM-YYYY)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (MM-YYYY)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.GetSubscriptionByIDResponse'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            type: string
+      summary: List subscriptions
+      tags:
+      - subscription
     post:
       consumes:
       - application/json

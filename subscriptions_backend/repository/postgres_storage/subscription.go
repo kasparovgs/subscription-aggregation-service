@@ -2,6 +2,8 @@ package postgres_storage
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 	"subscriptions_backend/domain"
 
 	"github.com/google/uuid"
@@ -52,6 +54,59 @@ func (ps *SubcriptionDB) GetSubscriptionByID(subscriptionID uuid.UUID) (*domain.
 	}
 
 	return &subs, nil
+}
+
+func (ps *SubcriptionDB) GetListOfSubscriptions(filter *domain.SubscriptionFilter) ([]domain.Subscription, error) {
+	query := `SELECT id, service_name, price, user_id, start_date, end_date
+        FROM subscriptions`
+	var conditions []string
+	var args []interface{}
+
+	if filter.UserID != nil {
+		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(args)+1))
+		args = append(args, *filter.UserID)
+	}
+	if filter.ServiceName != nil {
+		conditions = append(conditions, fmt.Sprintf("service_name = $%d", len(args)+1))
+		args = append(args, *filter.ServiceName)
+	}
+	if filter.Price != nil {
+		conditions = append(conditions, fmt.Sprintf("price = $%d", len(args)+1))
+		args = append(args, *filter.Price)
+	}
+	if filter.StartDate != nil {
+		conditions = append(conditions, fmt.Sprintf("start_date >= $%d", len(args)+1))
+		args = append(args, *filter.StartDate)
+	}
+	if filter.EndDate != nil {
+		conditions = append(conditions, fmt.Sprintf("end_date <= $%d", len(args)+1))
+		args = append(args, *filter.EndDate)
+	}
+
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+	fmt.Println(query)
+	rows, err := ps.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []domain.Subscription
+	for rows.Next() {
+		var sub domain.Subscription
+		if err := rows.Scan(&sub.SubscriptionID, &sub.ServiceName, &sub.Price,
+			&sub.UserID, &sub.StartDate, &sub.EndDate); err != nil {
+			return nil, err
+		}
+		result = append(result, sub)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (ps *SubcriptionDB) PatchSubscriptionByID(subs *domain.Subscription) error {

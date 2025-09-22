@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"subscriptions_backend/domain"
 	"time"
 
@@ -193,6 +194,54 @@ type DeleteSubscriptionByIDResponse struct {
 
 // *******************************************
 
+// ***** [GET] GetListOfSubscriptions *****
+
+func GetListOfSubscriptionsHandlerRequest(r *http.Request) (*domain.SubscriptionFilter, error) {
+	q := r.URL.Query()
+	filter := domain.SubscriptionFilter{}
+
+	if u := q.Get("user_id"); u != "" {
+		parsedUUID, err := uuid.Parse(u)
+		if err != nil {
+			return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding uuid: %v", err))
+		}
+		filter.UserID = &parsedUUID
+	}
+
+	if s := q.Get("start_date"); s != "" {
+		parsedStart, err := parseMonthYear(s)
+		if err != nil {
+			return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding startDate: %v", err))
+		}
+		filter.StartDate = &parsedStart
+	}
+	if e := q.Get("end_date"); e != "" {
+		parsedEnd, err := parseMonthYear(e)
+		if err != nil {
+			return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding endDate: %v", err))
+		}
+		filter.EndDate = &parsedEnd
+	}
+
+	if p := q.Get("price"); p != "" {
+		parsedPrice, err := strconv.Atoi(p)
+		if err != nil {
+			return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding price: %v", err))
+		}
+		filter.Price = &parsedPrice
+	}
+	if s := q.Get("service_name"); s != "" {
+		filter.ServiceName = &s
+	}
+
+	return &filter, nil
+}
+
+type GetListOfSubscriptionsResponse struct {
+	Subscriptions []domain.Subscription `json:"subscriptions"`
+}
+
+// ****************************************
 func parseMonthYear(s string) (time.Time, error) {
 	layout := "01-2006"
 	t, err := time.Parse(layout, s)

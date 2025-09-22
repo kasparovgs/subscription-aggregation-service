@@ -14,3 +14,11 @@ type Subscription struct {
 	StartDate      time.Time  `json:"start_date"`
 	EndDate        *time.Time `json:"end_date"`
 }
+
+type SubscriptionFilter struct {
+	UserID      *uuid.UUID `json:"user_id,omitempty"`
+	ServiceName *string    `json:"service_name,omitempty"`
+	Price       *int       `json:"price,omitempty"`
+	StartDate   *time.Time `json:"start_date,omitempty"`
+	EndDate     *time.Time `json:"end_date,omitempty"`
+}

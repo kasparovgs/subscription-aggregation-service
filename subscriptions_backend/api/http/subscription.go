@@ -151,9 +151,39 @@ func (s *Subscription) deleteSubscriptionByIDHandler(w http.ResponseWriter, r *h
 		EndDate: subs.EndDate})
 }
 
+// @Summary List subscriptions
+// @Description Get a list of subscriptions with the ability to filter
+// @Tags subscription
+// @Accept  json
+// @Produce json
+// @Param user_id query string false "userUUID"
+// @Param service_name query string false "Service name"
+// @Param start_date query string false "Start date (MM-YYYY)"
+// @Param end_date query string false "End date (MM-YYYY)"
+// @Success 200 {array} types.GetSubscriptionByIDResponse
+// @Failure 400 {string} string "Bad request"
+// @Router /subscriptions [get]
+func (s *Subscription) getListOfSubscriptionsHandler(w http.ResponseWriter, r *http.Request) {
+	req, err := types.GetListOfSubscriptionsHandlerRequest(r)
+	if err != nil {
+		slog.Warn("failed to parse request", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	list, err := s.service.GetListOfSubscriptions(req)
+	if err != nil {
+		slog.Error("filed to get list of subscriptions by filter", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	slog.Info("list of subscriptions by filter successfully found")
+	types.ProcessError(w, err, &types.GetListOfSubscriptionsResponse{Subscriptions: list})
+}
+
 func (s *Subscription) WithSubscriptionHandlers(r chi.Router) {
 	r.Post("/subscriptions", s.postCreateSubscriptionHandler)
 	r.Get("/subscriptions/{subscription_id}", s.getSubscriptionByIDHandler)
+	r.Get("/subscriptions", s.getListOfSubscriptionsHandler)
 	r.Patch("/subscriptions/{subscription_id}", s.patchSubscriptionByIDHandler)
 	r.Delete("/subscriptions/{subscription_id}", s.deleteSubscriptionByIDHandler)
 }

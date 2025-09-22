@@ -92,3 +92,22 @@ func (s *Subcription) DeleteSubscriptionByID(subs *domain.Subscription) (*domain
 		"service_name", subs.ServiceName)
 	return subs, nil
 }
+
+func (s *Subcription) GetListOfSubscriptions(filter *domain.SubscriptionFilter) ([]domain.Subscription, error) {
+	if filter == nil {
+		slog.Error("failed to get list by nil filter")
+		return nil, domain.ErrBadRequest("failed to get list by nil filter")
+	}
+	if filter.StartDate != nil && filter.EndDate != nil &&
+		filter.StartDate.After(*filter.EndDate) {
+		slog.Error("start date cannot be after end date", "layer", "service")
+		return nil, domain.ErrBadRequest("start date cannot be after end date")
+	}
+	list, err := s.subscriptionRepo.GetListOfSubscriptions(filter)
+	if err != nil {
+		slog.Error("failed to get list of subscriptions by filter", "layer", "service", "error", err)
+		return nil, err
+	}
+	slog.Info("list of subscriptions by filter successfully found", "layer", "service")
+	return list, nil
+}
