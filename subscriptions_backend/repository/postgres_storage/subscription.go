@@ -109,6 +109,36 @@ func (ps *SubcriptionDB) GetListOfSubscriptions(filter *domain.SubscriptionFilte
 	return result, nil
 }
 
+func (ps *SubcriptionDB) GetTotalCost(filter *domain.TotalCostFilter) (int, error) {
+	query := `SELECT COALESCE(SUM(price), 0) AS total_cost
+        		FROM subscriptions
+        		WHERE start_date >= $1
+          		AND (end_date IS NULL OR end_date <= $2)`
+	var args []interface{}
+	args = append(args, filter.StartDate)
+	args = append(args, filter.EndDate)
+	var conditions []string
+	if filter.UserID != nil {
+		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(args)+1))
+		args = append(args, *filter.UserID)
+	}
+	if filter.ServiceName != nil {
+		conditions = append(conditions, fmt.Sprintf("service_name = $%d", len(args)+1))
+		args = append(args, *filter.ServiceName)
+	}
+
+	if len(conditions) > 0 {
+		query += " AND " + strings.Join(conditions, " AND ")
+	}
+
+	var totalCost int
+	err := ps.db.QueryRow(query, args...).Scan(&totalCost)
+	if err != nil {
+		return 0, err
+	}
+	return totalCost, nil
+}
+
 func (ps *SubcriptionDB) PatchSubscriptionByID(subs *domain.Subscription) error {
 	if !ps.IsExist(subs.SubscriptionID) {
 		return domain.ErrNotFound("subscription not found")

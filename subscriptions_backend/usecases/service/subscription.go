@@ -111,3 +111,24 @@ func (s *Subcription) GetListOfSubscriptions(filter *domain.SubscriptionFilter) 
 	slog.Info("list of subscriptions by filter successfully found", "layer", "service")
 	return list, nil
 }
+
+func (s *Subcription) GetTotalCost(filter *domain.TotalCostFilter) (int, error) {
+	if filter == nil {
+		slog.Error("failed to get total cost by nil filter")
+		return 0, domain.ErrBadRequest("failed to get list by nil filter")
+	}
+	if filter.StartDate.After(filter.EndDate) {
+		slog.Error("start date cannot be after end date", "layer", "service")
+		return 0, domain.ErrBadRequest("start date cannot be after end date")
+	}
+	totalCost, err := s.subscriptionRepo.GetTotalCost(filter)
+	if err != nil {
+		slog.Error("failed to get total cost of subscriptions by filter", "layer", "service", "error", err)
+		return 0, err
+	}
+	slog.Info("total cost of subscriptions by filter successfully found",
+		"layer", "service",
+		"total_cost", totalCost)
+
+	return totalCost, nil
+}

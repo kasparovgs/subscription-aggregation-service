@@ -242,6 +242,52 @@ type GetListOfSubscriptionsResponse struct {
 }
 
 // ****************************************
+
+// ***** [GET] GetTotalCost *****
+
+func GetTotalCostHandlerRequest(r *http.Request) (*domain.TotalCostFilter, error) {
+	q := r.URL.Query()
+	req := domain.TotalCostFilter{}
+
+	if u := q.Get("user_id"); u != "" {
+		parsedUUID, err := uuid.Parse(u)
+		if err != nil {
+			return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding uuid: %v", err))
+		}
+		req.UserID = &parsedUUID
+	}
+
+	if s := q.Get("service_name"); s != "" {
+		req.ServiceName = &s
+	}
+
+	if s := q.Get("start_date"); s != "" {
+		parsedStart, err := parseMonthYear(s)
+		if err != nil {
+			return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding startDate: %v", err))
+		}
+		req.StartDate = parsedStart
+	} else {
+		return nil, domain.ErrBadRequest("start_date is required for the request")
+	}
+	if e := q.Get("end_date"); e != "" {
+		parsedEnd, err := parseMonthYear(e)
+		if err != nil {
+			return nil, domain.ErrBadRequest(fmt.Sprintf("error while decoding endDate: %v", err))
+		}
+		req.EndDate = parsedEnd
+	} else {
+		return nil, domain.ErrBadRequest("start_date is required for the request")
+	}
+	return &req, nil
+}
+
+type GetTotalCostResponse struct {
+	TotalCost int `json:"total_cost"`
+}
+
+// ******************************
+
 func parseMonthYear(s string) (time.Time, error) {
 	layout := "01-2006"
 	t, err := time.Parse(layout, s)

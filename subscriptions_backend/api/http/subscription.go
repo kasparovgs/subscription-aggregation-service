@@ -180,10 +180,42 @@ func (s *Subscription) getListOfSubscriptionsHandler(w http.ResponseWriter, r *h
 	types.ProcessError(w, err, &types.GetListOfSubscriptionsResponse{Subscriptions: list})
 }
 
+// @Summary Get total cost of subscriptions
+// @Description Returns the total monthly cost of all subscriptions
+// for the given period with optional filtering by user_id and service_name.
+// @Tags subscription
+// @Accept  json
+// @Produce json
+// @Param start_date query string true "Start date (format: MM-YYYY)"
+// @Param end_date query string true "End date (format: MM-YYY)"
+// @Param user_id query string false "User ID (UUID)"
+// @Param service_name query string false "Service name"
+// @Success 200 {object} types.GetTotalCostResponse
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /subscriptions/total-cost [get]
+func (s *Subscription) getTotalCostHandler(w http.ResponseWriter, r *http.Request) {
+	costFilter, err := types.GetTotalCostHandlerRequest(r)
+	if err != nil {
+		slog.Warn("failed to parse request", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	cost, err := s.service.GetTotalCost(costFilter)
+	if err != nil {
+		slog.Error("filed to get total cost of subscriptions by filter", "error", err)
+		types.ProcessError(w, err, nil)
+		return
+	}
+	slog.Info("total cost of subscriptions by filter successfully received")
+	types.ProcessError(w, err, &types.GetTotalCostResponse{TotalCost: cost})
+}
+
 func (s *Subscription) WithSubscriptionHandlers(r chi.Router) {
 	r.Post("/subscriptions", s.postCreateSubscriptionHandler)
 	r.Get("/subscriptions/{subscription_id}", s.getSubscriptionByIDHandler)
 	r.Get("/subscriptions", s.getListOfSubscriptionsHandler)
+	r.Get("/subscriptions/total", s.getTotalCostHandler)
 	r.Patch("/subscriptions/{subscription_id}", s.patchSubscriptionByIDHandler)
 	r.Delete("/subscriptions/{subscription_id}", s.deleteSubscriptionByIDHandler)
 }
