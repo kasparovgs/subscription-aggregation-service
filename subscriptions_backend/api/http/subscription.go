@@ -193,7 +193,7 @@ func (s *Subscription) getListOfSubscriptionsHandler(w http.ResponseWriter, r *h
 // @Success 200 {object} types.GetTotalCostResponse
 // @Failure 400 {string} string "Bad request"
 // @Failure 500 {string} string "Internal server error"
-// @Router /subscriptions/total-cost [get]
+// @Router /subscriptions/total [get]
 func (s *Subscription) getTotalCostHandler(w http.ResponseWriter, r *http.Request) {
 	costFilter, err := types.GetTotalCostHandlerRequest(r)
 	if err != nil {

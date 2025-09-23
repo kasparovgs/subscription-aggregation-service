@@ -86,7 +86,6 @@ func (ps *SubcriptionDB) GetListOfSubscriptions(filter *domain.SubscriptionFilte
 	if len(conditions) > 0 {
 		query += " WHERE " + strings.Join(conditions, " AND ")
 	}
-	fmt.Println(query)
 	rows, err := ps.db.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -109,14 +108,13 @@ func (ps *SubcriptionDB) GetListOfSubscriptions(filter *domain.SubscriptionFilte
 	return result, nil
 }
 
-func (ps *SubcriptionDB) GetTotalCost(filter *domain.TotalCostFilter) (int, error) {
-	query := `SELECT COALESCE(SUM(price), 0) AS total_cost
-        		FROM subscriptions
-        		WHERE start_date >= $1
-          		AND (end_date IS NULL OR end_date <= $2)`
-	var args []interface{}
-	args = append(args, filter.StartDate)
-	args = append(args, filter.EndDate)
+func (ps *SubcriptionDB) GetTotalCost(filter *domain.TotalCostFilter) ([]domain.Subscription, error) {
+	query := `SELECT id, service_name, price, user_id, start_date, end_date
+              FROM subscriptions
+              WHERE start_date <= $2
+                AND (end_date IS NULL OR end_date >= $1)`
+	args := []interface{}{filter.StartDate, filter.EndDate}
+
 	var conditions []string
 	if filter.UserID != nil {
 		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(args)+1))
@@ -126,17 +124,27 @@ func (ps *SubcriptionDB) GetTotalCost(filter *domain.TotalCostFilter) (int, erro
 		conditions = append(conditions, fmt.Sprintf("service_name = $%d", len(args)+1))
 		args = append(args, *filter.ServiceName)
 	}
-
 	if len(conditions) > 0 {
 		query += " AND " + strings.Join(conditions, " AND ")
 	}
 
-	var totalCost int
-	err := ps.db.QueryRow(query, args...).Scan(&totalCost)
+	rows, err := ps.db.Query(query, args...)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return totalCost, nil
+	defer rows.Close()
+
+	var subs []domain.Subscription
+	for rows.Next() {
+		var s domain.Subscription
+		err = rows.Scan(&s.SubscriptionID, &s.ServiceName,
+			&s.Price, &s.UserID, &s.StartDate, &s.EndDate)
+		if err != nil {
+			return nil, err
+		}
+		subs = append(subs, s)
+	}
+	return subs, rows.Err()
 }
 
 func (ps *SubcriptionDB) PatchSubscriptionByID(subs *domain.Subscription) error {

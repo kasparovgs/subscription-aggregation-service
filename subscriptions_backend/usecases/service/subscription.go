@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"subscriptions_backend/domain"
 	"subscriptions_backend/repository"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -121,14 +122,57 @@ func (s *Subcription) GetTotalCost(filter *domain.TotalCostFilter) (int, error) 
 		slog.Error("start date cannot be after end date", "layer", "service")
 		return 0, domain.ErrBadRequest("start date cannot be after end date")
 	}
-	totalCost, err := s.subscriptionRepo.GetTotalCost(filter)
+	subs, err := s.subscriptionRepo.GetTotalCost(filter)
 	if err != nil {
 		slog.Error("failed to get total cost of subscriptions by filter", "layer", "service", "error", err)
 		return 0, err
+	}
+
+	var totalCost int
+	for _, sub := range subs {
+		totalCost += costForPeriod(&sub, filter.StartDate, filter.EndDate)
 	}
 	slog.Info("total cost of subscriptions by filter successfully found",
 		"layer", "service",
 		"total_cost", totalCost)
 
 	return totalCost, nil
+}
+
+func costForPeriod(sub *domain.Subscription, periodStart, periodEnd time.Time) int {
+	start := maxTime(sub.StartDate, periodStart)
+
+	var end time.Time
+	if sub.EndDate != nil {
+		end = minTime(*sub.EndDate, periodEnd)
+	} else {
+		end = periodEnd
+	}
+
+	if end.Before(start) {
+		return 0
+	}
+
+	months := countMonths(start, end)
+	return months * sub.Price
+}
+
+func countMonths(start, end time.Time) int {
+	y1, m1, _ := start.Date()
+	y2, m2, _ := end.Date()
+	return (y2-y1)*12 + int(m2-m1) + 1
+}
+
+func maxTime(a, b time.Time) time.Time {
+	if a.After(b) {
+		return a
+	}
+	return b
+}
+
+func minTime(a, b time.Time) time.Time {
+	if a.Before(b) {
+		return a
+	}
+	return b
 }
