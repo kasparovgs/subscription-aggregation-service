@@ -1,0 +1,257 @@
+basePath: /
+definitions:
+  types.GetSubscriptionByIDResponse:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      subscription_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  types.GetTotalCostResponse:
+    properties:
+      total_cost:
+        type: integer
+    type: object
+  types.PatchSubscriptionByIDRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+    type: object
+  types.PostCreateSubscriptionRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  types.PostCreateSubscriptionResponse:
+    properties:
+      subscription_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST-service for aggregating data about users online subscriptions.
+  title: My API
+  version: "1.0"
+paths:
+  /subscriptions:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of subscriptions with the ability to filter
+      parameters:
+      - description: userUUID
+        in: query
+        name: user_id
+        type: string
+      - description: Service name
+        in: query
+        name: service_name
+        type: string
+      - description: Start date (MM-YYYY)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (MM-YYYY)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.GetSubscriptionByIDResponse'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            type: string
+      summary: List subscriptions
+      tags:
+      - subscription
+    post:
+      consumes:
+      - application/json
+      description: Create a new subscription and issue their subscriptionID
+      parameters:
+      - description: login and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostCreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/types.PostCreateSubscriptionResponse'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+      summary: Create a new subscription
+      tags:
+      - subscription
+  /subscriptions/{subscription_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a subscription by their subscriptionID
+      parameters:
+      - description: UUID of the subscription
+        format: uuid
+        in: path
+        name: subscription_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetSubscriptionByIDResponse'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Subscription not found
+          schema:
+            type: string
+      summary: Delete a subscription
+      tags:
+      - subscription
+    get:
+      consumes:
+      - application/json
+      description: Get a subscription by their subscriptionID
+      parameters:
+      - description: UUID of the subscription
+        format: uuid
+        in: path
+        name: subscription_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetSubscriptionByIDResponse'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Subscription not found
+          schema:
+            type: string
+      summary: Get a subscription
+      tags:
+      - subscription
+    patch:
+      consumes:
+      - application/json
+      description: Patch a subscription by their subscriptionID
+      parameters:
+      - description: UUID of the subscription
+        format: uuid
+        in: path
+        name: subscription_id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.PatchSubscriptionByIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetSubscriptionByIDResponse'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Subscription not found
+          schema:
+            type: string
+      summary: Patch a subscription
+      tags:
+      - subscription
+  /subscriptions/total:
+    get:
+      consumes:
+      - application/json
+      description: Returns the total cost of all subscriptions that are active within
+        the given period with optional filtering by user_id and service_name.
+      parameters:
+      - description: 'Start date (format: MM-YYYY)'
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: 'End date (format: MM-YYY)'
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - description: User ID (UUID)
+        in: query
+        name: user_id
+        type: string
+      - description: Service name
+        in: query
+        name: service_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.GetTotalCostResponse'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get total cost of subscriptions
+      tags:
+      - subscription
+swagger: "2.0"
