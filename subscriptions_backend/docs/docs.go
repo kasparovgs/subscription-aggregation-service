@@ -113,7 +113,7 @@ const docTemplate = `{
         },
         "/subscriptions/total": {
             "get": {
-                "description": "Returns the total monthly cost of all subscriptions",
+                "description": "Returns the total cost of all subscriptions that are active within the given period with optional filtering by user_id and service_name.",
                 "consumes": [
                     "application/json"
                 ],

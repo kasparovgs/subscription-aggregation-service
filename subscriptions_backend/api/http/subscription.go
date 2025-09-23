@@ -181,8 +181,7 @@ func (s *Subscription) getListOfSubscriptionsHandler(w http.ResponseWriter, r *h
 }
 
 // @Summary Get total cost of subscriptions
-// @Description Returns the total monthly cost of all subscriptions
-// for the given period with optional filtering by user_id and service_name.
+// @Description Returns the total cost of all subscriptions that are active within the given period with optional filtering by user_id and service_name.
 // @Tags subscription
 // @Accept  json
 // @Produce json

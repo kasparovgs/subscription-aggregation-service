@@ -215,7 +215,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns the total monthly cost of all subscriptions
+      description: Returns the total cost of all subscriptions that are active within
+        the given period with optional filtering by user_id and service_name.
       parameters:
       - description: 'Start date (format: MM-YYYY)'
         in: query
