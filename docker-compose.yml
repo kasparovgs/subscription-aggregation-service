@@ -34,8 +34,9 @@ services:
       dockerfile: Dockerfile
     environment:
       DB_CONN_STR: "postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}"
+      APP_PORT: ${APP_PORT}
     ports:
-      - "${APP_PORT}:8080"
+      - "${APP_PORT}:${APP_PORT}"
     depends_on:
       db:
         condition: service_healthy

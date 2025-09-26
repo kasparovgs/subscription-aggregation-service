@@ -15,9 +15,20 @@ func ParseFlags() AppFlags {
 }
 
 type HTTPConfig struct {
-	Address string `yaml:"address"`
+	Address string `env:"APP_PORT"`
+}
+
+type LoggerConfig struct {
+	Level string `yaml:"level"`
+}
+
+type AppInfo struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
 }
 
 type AppConfig struct {
-	HTTPConfig `yaml:"http"`
+	AppInfo `yaml:"app"`
+	HTTPConfig
+	LoggerConfig `yaml:"logger"`
 }
