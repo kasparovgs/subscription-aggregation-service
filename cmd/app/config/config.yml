@@ -1,2 +1,6 @@
-http:
-  address: ":8080"
+app:
+  name: subscription-aggregation-service
+  version: 2.0.1
+
+logger:
+  level: info

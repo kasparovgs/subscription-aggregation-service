@@ -3,11 +3,13 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/kasparovgs/subscription-aggregation-service/cmd/app/config"
 )
 
-func MustLoad(cfgPath string, cfg any) {
+func MustLoad(cfgPath string, cfg *config.AppConfig) {
 	if cfgPath == "" {
 		log.Fatal("Config path is not set")
 	}
@@ -18,5 +20,9 @@ func MustLoad(cfgPath string, cfg any) {
 
 	if err := cleanenv.ReadConfig(cfgPath, cfg); err != nil {
 		log.Fatalf("error reading config: %s", err)
+	}
+
+	if !strings.HasPrefix(cfg.HTTPConfig.Address, ":") {
+		cfg.HTTPConfig.Address = ":" + cfg.HTTPConfig.Address
 	}
 }
