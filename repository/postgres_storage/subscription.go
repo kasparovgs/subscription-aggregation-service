@@ -2,11 +2,10 @@ package postgres_storage
 
 import (
 	"database/sql"
-	"fmt"
-	"strings"
 
 	"github.com/kasparovgs/subscription-aggregation-service/domain"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 )
 
@@ -58,35 +57,31 @@ func (ps *SubcriptionDB) GetSubscriptionByID(subscriptionID uuid.UUID) (*domain.
 }
 
 func (ps *SubcriptionDB) GetListOfSubscriptions(filter *domain.SubscriptionFilter) ([]domain.Subscription, error) {
-	query := `SELECT id, service_name, price, user_id, start_date, end_date
-        FROM subscriptions`
-	var conditions []string
-	var args []interface{}
+	builder := sq.Select("id", "service_name", "price", "user_id", "start_date", "end_date").
+		From("subscriptions").
+		PlaceholderFormat(sq.Dollar)
 
 	if filter.UserID != nil {
-		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(args)+1))
-		args = append(args, *filter.UserID)
+		builder = builder.Where(sq.Eq{"user_id": *filter.UserID})
 	}
 	if filter.ServiceName != nil {
-		conditions = append(conditions, fmt.Sprintf("service_name = $%d", len(args)+1))
-		args = append(args, *filter.ServiceName)
+		builder = builder.Where(sq.Eq{"service_name": *filter.ServiceName})
 	}
 	if filter.Price != nil {
-		conditions = append(conditions, fmt.Sprintf("price = $%d", len(args)+1))
-		args = append(args, *filter.Price)
+		builder = builder.Where(sq.Eq{"price": *filter.Price})
 	}
 	if filter.StartDate != nil {
-		conditions = append(conditions, fmt.Sprintf("start_date >= $%d", len(args)+1))
-		args = append(args, *filter.StartDate)
+		builder = builder.Where(sq.GtOrEq{"start_date": *filter.StartDate})
 	}
 	if filter.EndDate != nil {
-		conditions = append(conditions, fmt.Sprintf("end_date <= $%d", len(args)+1))
-		args = append(args, *filter.EndDate)
+		builder = builder.Where(sq.LtOrEq{"end_date": *filter.EndDate})
 	}
 
-	if len(conditions) > 0 {
-		query += " WHERE " + strings.Join(conditions, " AND ")
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
 	}
+
 	rows, err := ps.db.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -110,23 +105,22 @@ func (ps *SubcriptionDB) GetListOfSubscriptions(filter *domain.SubscriptionFilte
 }
 
 func (ps *SubcriptionDB) GetTotalCost(filter *domain.TotalCostFilter) ([]domain.Subscription, error) {
-	query := `SELECT id, service_name, price, user_id, start_date, end_date
-              FROM subscriptions
-              WHERE start_date <= $2
-                AND (end_date IS NULL OR end_date >= $1)`
-	args := []interface{}{filter.StartDate, filter.EndDate}
+	builder := sq.Select("id", "service_name", "price", "user_id", "start_date", "end_date").
+		From("subscriptions").
+		Where("start_date <= ?", filter.EndDate).
+		Where("(end_date IS NULL OR end_date >= ?)", filter.StartDate).
+		PlaceholderFormat(sq.Dollar)
 
-	var conditions []string
 	if filter.UserID != nil {
-		conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(args)+1))
-		args = append(args, *filter.UserID)
+		builder = builder.Where(sq.Eq{"user_id": *filter.UserID})
 	}
 	if filter.ServiceName != nil {
-		conditions = append(conditions, fmt.Sprintf("service_name = $%d", len(args)+1))
-		args = append(args, *filter.ServiceName)
+		builder = builder.Where(sq.Eq{"service_name": *filter.ServiceName})
 	}
-	if len(conditions) > 0 {
-		query += " AND " + strings.Join(conditions, " AND ")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
 	}
 
 	rows, err := ps.db.Query(query, args...)
