@@ -2,9 +2,11 @@ package service
 
 import (
 	"log/slog"
-	"subscriptions_backend/domain"
-	"subscriptions_backend/repository"
 	"time"
+
+	"github.com/kasparovgs/subscription-aggregation-service/domain"
+
+	"github.com/kasparovgs/subscription-aggregation-service/repository"
 
 	"github.com/google/uuid"
 )

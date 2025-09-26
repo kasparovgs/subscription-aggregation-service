@@ -6,8 +6,9 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"subscriptions_backend/domain"
 	"time"
+
+	"github.com/kasparovgs/subscription-aggregation-service/domain"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"

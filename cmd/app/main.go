@@ -3,14 +3,20 @@ package main
 import (
 	"log/slog"
 	"os"
-	"pkg/config"
-	pkgHttp "pkg/http"
-	"subscriptions_backend/api/http"
-	appConfig "subscriptions_backend/cmd/app/config"
-	"subscriptions_backend/repository/postgres_storage"
-	"subscriptions_backend/usecases/service"
 
-	_ "subscriptions_backend/docs"
+	"github.com/kasparovgs/subscription-aggregation-service/api/http"
+
+	"github.com/kasparovgs/subscription-aggregation-service/repository/postgres_storage"
+
+	"github.com/kasparovgs/subscription-aggregation-service/usecases/service"
+
+	appConfig "github.com/kasparovgs/subscription-aggregation-service/cmd/app/config"
+
+	pkgHttp "github.com/kasparovgs/subscription-aggregation-service/pkg/http"
+
+	"github.com/kasparovgs/subscription-aggregation-service/pkg/config"
+
+	_ "github.com/kasparovgs/subscription-aggregation-service/docs"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 

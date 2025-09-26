@@ -3,7 +3,8 @@ package types
 import (
 	"encoding/json"
 	"net/http"
-	"subscriptions_backend/domain"
+
+	"github.com/kasparovgs/subscription-aggregation-service/domain"
 )
 
 func ProcessError(w http.ResponseWriter, err error, resp any) {
