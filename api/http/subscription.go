@@ -3,8 +3,10 @@ package http
 import (
 	"log/slog"
 	"net/http"
-	"subscriptions_backend/api/http/types"
-	"subscriptions_backend/usecases"
+
+	"github.com/kasparovgs/subscription-aggregation-service/usecases"
+
+	"github.com/kasparovgs/subscription-aggregation-service/api/http/types"
 
 	"github.com/go-chi/chi/v5"
 )

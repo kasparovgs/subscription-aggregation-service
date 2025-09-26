@@ -21,7 +21,7 @@ services:
       "up"
     ]
     volumes:
-      - ./subscriptions_backend/migrations:/migrations
+      - ./migrations:/migrations
     depends_on:
       db:
         condition: service_healthy
@@ -31,7 +31,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: subscriptions_backend/Dockerfile
+      dockerfile: Dockerfile
     environment:
       DB_CONN_STR: "postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}"
     ports:

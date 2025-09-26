@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"subscriptions_backend/domain"
+	"github.com/kasparovgs/subscription-aggregation-service/domain"
 
 	"github.com/google/uuid"
 )

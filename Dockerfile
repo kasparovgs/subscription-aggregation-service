@@ -2,13 +2,13 @@ FROM golang:1.24.2-alpine AS build
 
 WORKDIR /build
 
-COPY subscriptions_backend/go.mod subscriptions_backend/go.sum ./
+COPY go.mod go.sum ./
 
 COPY pkg/ ../pkg/
 
 RUN go mod download
 
-COPY subscriptions_backend/ ./
+COPY . .
 
 RUN apk add --no-cache make
 
