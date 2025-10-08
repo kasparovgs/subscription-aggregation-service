@@ -27,6 +27,13 @@ func NewSubscriptionDB(connStr string) (*SubcriptionDB, error) {
 	return &SubcriptionDB{db: db}, nil
 }
 
+func (ps *SubcriptionDB) Close() error {
+	if ps.db != nil {
+		return ps.db.Close()
+	}
+	return nil
+}
+
 func (ps *SubcriptionDB) CreateSubscription(subs *domain.Subscription) error {
 	query := `INSERT INTO subscriptions (id, service_name, price, user_id, start_date, end_date)
 			  VALUES ($1, $2, $3, $4, $5, $6)`

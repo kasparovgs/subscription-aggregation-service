@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/kasparovgs/subscription-aggregation-service/api/http"
 
@@ -53,6 +57,13 @@ func main() {
 		slog.Error("no connection with postgres", "error", err)
 		os.Exit(1)
 	}
+	defer func() {
+		slog.Info("closing database connection")
+		if err := subscriptionRepo.Close(); err != nil {
+			slog.Error("failed to close database", "error", err)
+		}
+	}()
+
 	slog.Info("connected to postgres")
 
 	subscriptionService := service.NewSubscription(subscriptionRepo)
@@ -63,9 +74,27 @@ func main() {
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 	subscriptionHandlers.WithSubscriptionHandlers(r)
 
-	slog.Info("starting HTTP server", "address", cfg.Address)
-	if err := pkgHttp.CreateAndRunServer(r, cfg.Address); err != nil {
-		slog.Error("failed to start server", "error", err)
-		os.Exit(1)
+	server := pkgHttp.CreateServer(r, cfg.Address)
+	go func() {
+		slog.Info("starting HTTP server", "address", cfg.Address)
+		if err := server.ListenAndServe(); err != nil {
+			slog.Error("failed to start server", "error", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	slog.Info("waiting for shutdown signal...")
+	<-quit
+	slog.Info("shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		slog.Error("server forced to shutdown", "error", err)
+	} else {
+		slog.Info("server exited gracefully")
 	}
 }

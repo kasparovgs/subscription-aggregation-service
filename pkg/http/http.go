@@ -8,13 +8,11 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func CreateAndRunServer(r chi.Router, addr string) error {
-	httpServer := &http.Server{
+func CreateServer(r chi.Router, addr string) *http.Server {
+	return &http.Server{
 		Addr:    addr,
 		Handler: r,
 	}
-
-	return httpServer.ListenAndServe()
 }
 
 func LoggingMiddleware(next http.Handler) http.Handler {
