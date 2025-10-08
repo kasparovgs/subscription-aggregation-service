@@ -14,4 +14,5 @@ type SubscriptionDB interface {
 	PatchSubscriptionByID(subs *domain.Subscription) error
 	DeleteSubscriptionByID(subs *domain.Subscription) error
 	IsExist(subscriptionID uuid.UUID) bool
+	Close() error
 }
